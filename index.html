@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>🎵 YZ Audio EQ Player</title>
+<style>
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: linear-gradient(135deg, #000814, #001d3d);
+    font-family: 'Segoe UI', sans-serif;
+    color: #0ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+.player-container {
+  width: 100vw;
+  height: 100vh;
+  padding: 10px 0; /* Hapus padding kiri kanan, atau kecilkan */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(12px);
+  position: relative;
+  z-index: 2;
+}
+
+          h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #0ff;
+      text-align: center;
+      margin: 12px 0 8px;
+      text-shadow: 0 0 5px #0ff, 0 0 10px #00faff, 0 0 20px #00e1ff, 0 0 30px #00bfff;
+    }
+
+    .audio-box, .EQ Sliders-box {
+      background: rgba(0, 0, 0, 0.25);
+      padding: 20px;
+      border-radius: 25px;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .audio-box {
+      flex-direction: column;
+      background: rgba(0, 0, 0, 0.25);
+      box-shadow: 0 0 10px #0ff8 inset;
+    }
+    
+      .eq-slider-box {
+    width: 28px;
+  }
+    
+    /* Folder Picker icon pojok kiri */
+  #folderPicker {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    opacity: 0;
+    width: 36px;
+    height: 36px;
+    z-index: 3;
+  }
+
+  label[for="folderPicker"] {
+    position: absolute;
+    top: 19px;
+    left: 20px;
+    width: 36px;
+    height: 36px;
+    background: rgba(0,255,255,0.1);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 18px;
+    backdrop-filter: blur(8px);
+    color: #0ff;
+  }
+
+  #nowPlaying {
+    font-weight: bold;
+    font-size: 0.9em;
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  audio {
+    width: 90%;
+    height: 40px;
+    border-radius: 10px;
+    background: #111;
+  }
+  audio {
+  box-shadow: 0 0 8px rgba(0,255,255,0.2);
+}
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    margin: 6px 0;
+  }
+
+  .row select, .row button, .row input[type=range] {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(0,255,255,0.08);
+    color: #0ff;
+    font-size: 0.8em;
+    backdrop-filter: blur(4px);
+  }
+
+  .status.on { color: #6f6; text-shadow: 0 0 5px #6f6; }
+  .status.off { color: #f66; text-shadow: 0 0 5px #f66; }
+
+input[type="range"]#volumeRange,
+input[type="range"]#panRange {
+  accent-color: #0ff;
+  transition: all 0.2s ease;
+}
+
+  /* EQ Sliders */
+  #manual-eq-sliders {
+    display: flex;
+    justify-content: center;
+    align-items: end;
+    flex-wrap: nowrap;
+    gap: 4vw;
+    width: 100%;
+    max-width: 95vw;
+    margin-top: 6px;
+    padding: 0 2vw;
+  }
+
+  .eq-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 7.5vw;
+    max-width: 30px;
+  }
+
+  .eq-slider {
+    writing-mode: bt-lr;
+    -webkit-appearance: slider-vertical;
+    width: 12px;
+    height: 88px;
+    background: transparent;
+    accent-color: #0ff;
+      color: #0ff;
+      text-shadow: 0 0 4px #0ff;
+  }
+  
+  .eq-col span {
+    font-size: 0.6em;
+    margin-top: 2px;
+    color: #0ff;
+  }
+  
+  #resetPanBtn, BlendToggleBtn {
+  background: rgba(0, 255, 255, 0.15);
+  border: none;
+  border-radius: 12px;
+  padding: 4px 8px;
+  color: #0ff;
+  font-weight: 700;
+  box-shadow: 0 0 8px #0ff inset;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.25s ease;
+}
+
+  #BlendToggleBtn {
+  background: rgba(0, 255, 255, 0.15);
+  border: none;
+  border-radius: 12px;
+  padding: 4px 8px;
+  color: #0ff;
+  font-weight: 700;
+  box-shadow: 0 0 8px #0ff inset;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.25s ease;
+}
+
+  #BoosterToggleBtn {
+  background: rgba(0, 255, 255, 0.15);
+  border: none;
+  border-radius: 12px;
+  padding: 4px 8px;
+  color: #0ff;
+  font-weight: 700;
+  box-shadow: 0 0 8px #0ff inset;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.25s ease;
+}
+
+  #ToggleClarity {
+  background: rgba(0, 255, 255, 0.15);
+  border: none;
+  border-radius: 12px;
+  padding: 4px 8px;
+  color: #0ff;
+  font-weight: 700;
+  box-shadow: 0 0 8px #0ff inset;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.25s ease;
+}
+
+  /* Peak Meter */
+  #peakMeter {
+    position: absolute;
+    top: 20%;
+    left: 82%;
+    transform: translate(-50%, -70%);
+    opacity: 1;
+    filter: drop-shadow(0 0 6px #0ff) brightness(2);
+    z-index: 1;
+      width: 30%;
+        filter: brightness(1) contrast(1.4) saturate(2);
+  }
+  
+  #visualizer {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+    filter: blur(25px) brightness(1.1);
+    opacity: 0.15;
+  }
+
+</style>
+</head>
+<body>
+  <div class="player-container">
+  	  <h2>MUSIC PLAYER</h2>
+    <div class="audio-box">
+    	
+        <!-- Preset Selector -->
+    <div class="row">
+      <label for="preset-select">🎚️ Preset:</label>
+      <select id="preset-select">
+        <option value="flat">Flat</option>
+        <option value="bass">Bass</option>
+        <option value="treble">Treble</option>
+        <option value="rock">Rock</option>
+        <option value="pop">Pop</option>
+        <option value="jazz">Jazz</option>
+        <option value="dance">Dance</option>
+        <option value="classic">Classic</option>
+      </select>
+    </div>
+    
+        <!-- File Picker -->
+<!-- Folder Picker Icon -->
+	<input type="file" id="folderPicker" webkitdirectory multiple accept="audio/*" />
+<label for="folderPicker">📁</label>
+
+    <!-- Peak Meter -->
+    <div id="peakContainer">
+      <canvas id="peakMeter" width="100" height="100"></canvas>
+    </div>
+
+    <!-- Now Playing -->
+    <div id="nowPlaying">
+      🎶 Now Playing: <span id="trackName">-</span>
+    </div>
+
+    <!-- Audio Element -->
+    <audio id="audioPlayer" controls></audio>
+    
+          <!-- Manual EQ Sliders -->
+      <div id="manual-eq-sliders" style="display:grid; grid-template-columns: repeat(10, 1fr); gap:4px; margin-top:12px;">
+        <div class="eq-col"><input class="eq-slider" type="range" /><span>32Hz</span></div>
+        <div class="eq-col"><input class="eq-slider" type="range" /><span>64Hz</span></div>
+        <div class="eq-col"><input class="eq-slider" type="range" /><span>125Hz</span></div>
+        <div class="eq-col"><input class="eq-slider" type="range" /><span>250Hz</span></div>
+        <div class="eq-col"><input class="eq-slider" type="range" /><span>500Hz</span></div>
+        <div class="eq-col"><input class="eq-slider" type="range" /><span>1kHz</span></div>
+        <div class="eq-col"><input class="eq-slider" type="range" /><span>2kHz</span></div>
+        <div class="eq-col"><input class="eq-slider" type="range" /><span>4kHz</span></div>
+        <div class="eq-col"><input class="eq-slider" type="range" /><span>8kHz</span></div>
+        <div class="eq-col"><input class="eq-slider" type="range" /><span>16kHz</span></div>
+      </div>
+          </section>
+
+    <!-- Volume Control -->
+<div class="row">
+    <input type="range" id="volumeRange" min="0" max="2.5" value="1" step="0.01" />
+    <span id="gain-info">1.00x</span>
+  </div>
+  
+       <!-- BoosterToggleBtn -->
+      <div class="row">
+      <button id="boosterToggleBtn">⚡ Aktifkan Booster</button>
+      <span id="boosterStatus" class="status off">Booster: OFF</span>
+    </div>
+
+    <!-- Audio Mode Section -->
+    	    <div class="row">
+    <section id="preset-section" style="max-width: 300px; margin: 12px auto; padding: 6px; text-align: center; background: transparent;">
+      <select id="presetSelect"
+        style="padding: 6px 20px; font-size: 12px; border-radius: 6px; min-width: 160px;
+          background: rgba(255,255,255,0.08); backdrop-filter: blur(6px);
+          border: 1px solid rgba(255,255,255,0.1); color: #fff; cursor: pointer; transition: all 0.2s ease;">
+        <option value="normal">normal</option>
+        <option value="soft">🎶 soft</option>
+        <option value="hard">🚀 hard</option>
+        <option value="extreme">💎 extreme</option>
+      </select>
+    </div>
+    
+     <!-- Booster Slider -->
+    <div class="row">
+      <label for="boosterSlider">🔋 Gain Booster:</label>
+      <input type="range" id="boosterSlider" min="1" max="3" step="0.1" value="1.5" />
+      <span id="boosterLabel">1.00x</span>
+    </div>
+
+     <!-- BlendToggleBtn -->
+    <div class="row">
+      <button id="blendToggleBtn">🎻 Aktifkan Blend</button>
+      <span id="blendStatus" class="status off">Blend: OFF</span>
+    </div>
+
+    <div class="row" style="flex-wrap:wrap; gap:8px">
+      <select id="presetA">
+        <option value="flat">Flat</option>
+        <option value="bass">Bass</option>
+        <option value="treble">Treble</option>
+        <option value="rock">Rock</option>
+        <option value="pop">Pop</option>
+        <option value="jazz">Jazz</option>
+        <option value="dance">Dance</option>
+        <option value="classic">Classic</option>
+      </select>
+      <select id="presetB">
+        <option value="flat">Flat</option>
+        <option value="bass">Bass</option>
+        <option value="treble">Treble</option>
+        <option value="rock">Rock</option>
+        <option value="pop">Pop</option>
+        <option value="jazz">Jazz</option>
+        <option value="dance">Dance</option>
+        <option value="classic">Classic</option>
+      </select>
+      <input type="range" id="blendRatio" min="0" max="1" step="0.05" value="0.5" />
+      <span id="blendValue">0.50x</span>
+    </div>
+
+    <!-- Stereo Panner -->
+    <div class="row">
+      <button id="resetPanBtn">🎧 Reset Panning</button>
+      <input type="range" id="panRange" min="-1" max="1" step="0.01" value="0" />
+      <span id="panLabel">0.00</span>
+    </div>
+          
+          <!-- FX Toggles -->
+    <div class="row" style="margin-top:12px;">
+      <button id="toggleClarity">✨ Aktifkan Clarity</button>
+      <span id="status" class="status off">Clarity: OFF</span>
+    </div>
+
+    <!-- Visualizer -->
+    <canvas id="visualizer"></canvas>
+  </div>
+
+  <script src="eq-player-final.js"></script>
+</body>
+</html>
+<script>
+// ✅ FINAL JS AUDIO PLAYER + EQ + BOOSTER + CLARITY + VISUALIZER
+
+document.addEventListener("DOMContentLoaded", () => {
+  const audioPlayer = document.getElementById("audioPlayer");
+  const folderPicker = document.getElementById("folderPicker");
+  const nowPlaying = document.getElementById("trackName");
+  const volumeRange = document.getElementById("volumeRange");
+  const gainInfo = document.getElementById("gain-info");
+  const presetSelect = document.getElementById("preset-select");
+  const toggleBtn = document.getElementById("toggleClarity");
+  const blendBtn = document.getElementById("blendToggleBtn");
+  const blendStatus = document.getElementById("blendStatus");
+  const status = document.getElementById("status");
+  const boosterSlider = document.getElementById("boosterSlider");
+  const boosterLabel = document.getElementById("boosterLabel");
+  const boosterToggleBtn = document.getElementById("boosterToggleBtn");
+  const boosterStatus = document.getElementById("boosterStatus");
+  const blendRatioSlider = document.getElementById("blendRatio");
+  const blendValue = document.getElementById("blendValue");
+  const panRange = document.getElementById("panRange");
+  const panLabel = document.getElementById("panLabel");
+  const resetPanBtn = document.getElementById("resetPanBtn");
+
+  let audioCtx, sourceNode, gainNode, compressor;
+  let eqFilters = [], eqSliders = [], playlist = [], currentIndex = 0;
+  let clarityMode = false, blendMode = false, boosterMode = false;
+  let biquadFilter, boosterFilter, boosterFilter2, enhancerFilter, panNode, truePeakLimiter;
+
+const presets = {
+  "flat":    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  "bass":    [6, 4, 2, 1, 0, -1, -2, -3, -4, -5],
+  "treble":  [-5, -4, -3, -2, -1, 0, 1, 2, 4, 6],
+  "rock":    [5, 3, 2, 0, 0, 1, 3, 5, 3, 2],
+  "pop":     [2, 3, 4, 3, 1, 0, 1, 3, 4, 2],
+  "jazz":    [1, 2, 3, 5, 4, 3, 2, 1, 0, -1],
+  "dance":   [6, 5, 3, 2, 1, 1, 2, 3, 5, 6],
+  "classic": [-2, -1, 0, 1, 2, 1, 0, -1, -2, -3]
+};
+
+function initAudioContext() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  sourceNode = audioCtx.createMediaElementSource(audioPlayer);
+  gainNode = audioCtx.createGain();
+  panNode = audioCtx.createStereoPanner();
+  compressor = audioCtx.createDynamicsCompressor();
+  truePeakLimiter = audioCtx.createDynamicsCompressor();
+  biquadFilter = audioCtx.createBiquadFilter();
+  boosterFilter = audioCtx.createBiquadFilter();
+  boosterFilter2 = audioCtx.createBiquadFilter();
+  enhancerFilter = audioCtx.createBiquadFilter();
+  analyser = audioCtx.createAnalyser();
+
+  // ✅ Booster Mid Presence
+  boosterFilter.type = "peaking";
+  boosterFilter.frequency.value = 1000;
+  boosterFilter.Q.value = 0.5;
+  boosterFilter.gain.value = 4;
+
+  boosterFilter2.type = "peaking";
+  boosterFilter2.frequency.value = 3200;
+  boosterFilter2.Q.value = 0.5;
+  boosterFilter2.gain.value = 3;
+
+  // ✅ Enhancer Air
+  enhancerFilter.type = "highshelf";
+  enhancerFilter.frequency.value = 8000;
+  enhancerFilter.gain.value = 2;
+
+  // ✅ Compressor
+  compressor.threshold.setValueAtTime(-18, audioCtx.currentTime);
+  compressor.knee.setValueAtTime(25, audioCtx.currentTime);
+  compressor.ratio.setValueAtTime(5, audioCtx.currentTime);
+  compressor.attack.setValueAtTime(0.003, audioCtx.currentTime);
+  compressor.release.setValueAtTime(0.25, audioCtx.currentTime);
+
+  // ✅ True Peak Limiter
+  truePeakLimiter.threshold.setValueAtTime(-1, audioCtx.currentTime);
+  truePeakLimiter.knee.setValueAtTime(0, audioCtx.currentTime);
+  truePeakLimiter.ratio.setValueAtTime(20, audioCtx.currentTime);
+  truePeakLimiter.attack.setValueAtTime(0.001, audioCtx.currentTime);
+  truePeakLimiter.release.setValueAtTime(0.1, audioCtx.currentTime);
+
+  gainNode.gain.setValueAtTime(0.9, audioCtx.currentTime);
+
+  // ✅ EQ
+  const freqs = [32,64,125,250,500,1000,2000,4000,8000,16000];
+  eqFilters = freqs.map(freq => {
+    const f = audioCtx.createBiquadFilter();
+    f.type = "peaking";
+    f.frequency.value = freq;
+    f.Q.value = 1;
+    f.gain.value = 0;
+    return f;
+  });
+
+  eqSliders = Array.from(document.querySelectorAll(".eq-slider"));
+  eqSliders.forEach((slider, i) => {
+    slider.min = -12;
+    slider.max = 12;
+    slider.step = 0.1;
+    slider.value = 0;
+    slider.addEventListener("input", () => {
+      eqFilters[i].gain.setValueAtTime(parseFloat(slider.value), audioCtx.currentTime);
+    });
+  });
+
+  volumeRange.addEventListener("input", () => {
+    const val = parseFloat(volumeRange.value);
+    gainNode.gain.setValueAtTime(val, audioCtx.currentTime);
+    gainInfo.textContent = `🔊 Volume: ${val.toFixed(2)}x`;
+  });
+
+  boosterSlider.addEventListener("input", () => {
+    const boost = parseFloat(boosterSlider.value);
+    if (boosterMode) {
+      boosterFilter.gain.setValueAtTime(boost, audioCtx.currentTime);
+      boosterFilter2.gain.setValueAtTime(boost * 0.75, audioCtx.currentTime);
+    }
+    boosterLabel.textContent = `${boost.toFixed(2)}x`;
+  });
+
+  blendRatioSlider.addEventListener("input", () => {
+    const ratio = parseFloat(blendRatioSlider.value);
+    blendValue.textContent = `${ratio.toFixed(2)}x`;
+    if (blendMode) {
+      const a = document.getElementById("presetA").value;
+      const b = document.getElementById("presetB").value;
+      blendPresets(a, b, ratio);
+    }
+  });
+
+  panRange.addEventListener("input", () => {
+    const pan = parseFloat(panRange.value);
+    panNode.pan.setValueAtTime(pan, audioCtx.currentTime);
+    panLabel.textContent = `${pan.toFixed(2)}`;
+  });
+
+  resetPanBtn.addEventListener("click", () => {
+    panNode.pan.setValueAtTime(0, audioCtx.currentTime);
+    panRange.value = 0;
+    panLabel.textContent = "0.00";
+  });
+
+  // ✅ Visualizer analyzer config (buat ambient/pulse/peak)
+  analyser.fftSize = 256;
+  analyser.smoothingTimeConstant = 0.8;
+
+  connectChain();
+}
+
+function connectChain() {
+  disconnectAll();
+  let input = sourceNode;
+
+  if (clarityMode) {
+    const lowshelf = audioCtx.createBiquadFilter();
+    lowshelf.type = "lowshelf";
+    lowshelf.frequency.value = 150;
+    lowshelf.gain.value = 5;
+
+    const mid = audioCtx.createBiquadFilter();
+    mid.type = "peaking";
+    mid.frequency.value = 1000;
+    mid.gain.value = 2;
+
+    const highshelf = audioCtx.createBiquadFilter();
+    highshelf.type = "highshelf";
+    highshelf.frequency.value = 6000;
+    highshelf.gain.value = 4;
+
+    input.connect(lowshelf).connect(mid).connect(highshelf);
+    input = highshelf;
+  }
+
+  eqFilters.forEach(f => input = input.connect(f));
+  input = input.connect(biquadFilter);
+
+  if (boosterMode) {
+    // 🆕 Low Boost ditambah biar suara nggak terlalu tipis
+    const lowBoost = audioCtx.createBiquadFilter();
+    lowBoost.type = "lowshelf";
+    lowBoost.frequency.value = 120;
+    lowBoost.gain.value = 2;
+
+    input = input.connect(lowBoost)
+                 .connect(boosterFilter)
+                 .connect(boosterFilter2);
+  }
+
+  input = input.connect(enhancerFilter);
+  input.connect(compressor)
+       .connect(truePeakLimiter)
+       .connect(gainNode)
+       .connect(panNode)
+       .connect(audioCtx.destination);
+
+  // ✅ Untuk peak meter canvas / ambient anim
+  panNode.connect(analyser);
+}
+
+  function disconnectAll() {
+    try { sourceNode.disconnect(); } catch {}
+    [...eqFilters, biquadFilter, boosterFilter, compressor, gainNode, panNode].forEach(f => {
+      try { f.disconnect(); } catch {}
+    });
+  }
+
+  function applyPreset(presetName) {
+    const gains = presets[presetName] || presets["flat"];
+    gains.forEach((g, i) => {
+      eqFilters[i].gain.setValueAtTime(g, audioCtx.currentTime);
+      eqSliders[i].value = g;
+    });
+    applyBiquadPreset(presetName);
+  }
+
+  function applyBiquadPreset(preset) {
+    const config = {
+      jazz: ["peaking", 1000, 3],
+      rock: ["peaking", 3000, 5],
+      classic: ["lowpass", 10000, 0],
+      pop: ["highshelf", 3000, 4],
+      bass: ["lowshelf", 200, 6],
+      treble: ["highshelf", 6000, 6],
+      dance: ["peaking", 5000, 4],
+      default: ["allpass", 440, 0]
+    };
+    const [type, freq, gain] = config[preset] || config.default;
+    biquadFilter.type = type;
+    biquadFilter.frequency.value = freq;
+    biquadFilter.gain.value = gain;
+  }
+
+  function blendPresets(presetA, presetB, ratio = 0.5) {
+    const a = presets[presetA], b = presets[presetB];
+    if (!a || !b) return;
+    a.forEach((v, i) => {
+      const val = v * (1 - ratio) + b[i] * ratio;
+      eqFilters[i].gain.setValueAtTime(val, audioCtx.currentTime);
+      eqSliders[i].value = val;
+    });
+  }
+
+  folderPicker.addEventListener("change", (e) => {
+    playlist = [...e.target.files].filter(f => f.type.startsWith("audio/"));
+    if (playlist.length > 0) {
+      currentIndex = 0;
+      initAudioContext();
+      loadTrack();
+    }
+  });
+
+  function loadTrack() {
+    const file = playlist[currentIndex];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    audioPlayer.src = url;
+    audioPlayer.load();
+    nowPlaying.textContent = file.name;
+    audioPlayer.play();
+  }
+
+  audioPlayer.addEventListener("play", async () => {
+    if (!audioCtx) initAudioContext();
+    if (audioCtx.state === "suspended") await audioCtx.resume();
+  });
+
+  presetSelect.addEventListener("change", () => {
+    clarityMode = blendMode = boosterMode = false;
+    toggleBtn.innerText = "✨ Aktifkan Clarity";
+    blendBtn.innerText = "🎛️ Aktifkan Blend";
+    boosterStatus.textContent = "Booster: OFF";
+    boosterStatus.className = "status off";
+    applyPreset(presetSelect.value);
+    connectChain();
+  });
+
+  toggleBtn.addEventListener("click", () => {
+    clarityMode = !clarityMode;
+    toggleBtn.innerText = clarityMode ? "❌ Matikan Clarity" : "✨ Aktifkan Clarity";
+    status.textContent = clarityMode ? "Clarity: ON" : "Clarity: OFF";
+    status.className = clarityMode ? "status on" : "status off";
+    if (clarityMode) {
+      const clarityPreset = [0,-4,-2,0,2,4,3,1,0,0];
+      clarityPreset.forEach((v,i) => {
+        eqFilters[i].gain.setValueAtTime(v, audioCtx.currentTime);
+        eqSliders[i].value = v;
+      });
+    } else applyPreset(presetSelect.value);
+    connectChain();
+  });
+
+  blendBtn.addEventListener("click", () => {
+    blendMode = !blendMode;
+    blendBtn.innerText = blendMode ? "❌ Matikan Blend" : "🎛️ Aktifkan Blend";
+    blendStatus.textContent = blendMode ? "Blend: ON" : "Blend: OFF";
+    blendStatus.className = blendMode ? "status on" : "status off";
+    if (blendMode) {
+      const a = document.getElementById("presetA").value;
+      const b = document.getElementById("presetB").value;
+      const ratio = parseFloat(blendRatioSlider.value);
+      blendPresets(a, b, ratio);
+    } else applyPreset(presetSelect.value);
+    connectChain();
+  });
+
+  boosterToggleBtn.addEventListener("click", () => {
+    boosterMode = !boosterMode;
+    boosterToggleBtn.textContent = boosterMode ? "❌ Matikan Booster" : "⚡ Aktifkan Booster";
+    boosterStatus.textContent = boosterMode ? "Booster: ON" : "Booster: OFF";
+    boosterStatus.className = boosterMode ? "status on" : "status off";
+    connectChain();
+    if (boosterMode) {
+      const boost = parseFloat(boosterSlider.value);
+      boosterFilter.gain.setValueAtTime(boost, audioCtx.currentTime);
+      boosterFilter2.gain.setValueAtTime(boost * 0.75, audioCtx.currentTime);
+      eqFilters[5].gain.setValueAtTime(boost * 0.6, audioCtx.currentTime);
+      eqFilters[6].gain.setValueAtTime(boost * 0.45, audioCtx.currentTime);
+      eqSliders[5].value = (boost * 0.6).toFixed(1);
+      eqSliders[6].value = (boost * 0.45).toFixed(1);
+    } else applyPreset(presetSelect.value);
+  });
+
+  let analyser, dataArray, canvas, ctx;
+  function initVisualizer() {
+    canvas = document.getElementById("peakMeter");
+    if (!canvas) return;
+    ctx = canvas.getContext("2d");
+    canvas.width = 100;
+    canvas.height = 100;
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+    panNode.connect(analyser);
+  }
+
+  function drawLightningVisualizer() {
+    if (!canvas || !ctx || !analyser) return;
+    requestAnimationFrame(drawLightningVisualizer);
+    analyser.getByteTimeDomainData(dataArray);
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const max = Math.max(...dataArray);
+    const norm = max / 255;
+    const radius = 20 + norm * 25;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const gradient = ctx.createRadialGradient(centerX, centerY, radius * 0.4, centerX, centerY, radius);
+    gradient.addColorStop(0, "rgba(50, 150, 255, 0.8)");
+    gradient.addColorStop(1, "rgba(180, 60, 255, 0.2)");
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+  }
+
+  initAudioContext();
+  applyPreset("flat");
+  initVisualizer();
+  drawLightningVisualizer();
+});
+
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
